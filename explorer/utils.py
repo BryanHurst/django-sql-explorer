@@ -1,8 +1,14 @@
 import functools
 import re
 
+import django
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.views import LoginView
+if django.VERSION >= (1, 11):
+    USE_OLD_LOGIN = False
+    from django.contrib.auth.views import LoginView
+else:
+    USE_OLD_LOGIN = True
+    from django.contrib.auth.views import login
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from six import text_type
 import sqlparse
@@ -50,6 +56,8 @@ def safe_login_prompt(request):
             REDIRECT_FIELD_NAME: request.get_full_path(),
         },
     }
+    if USE_OLD_LOGIN:
+        return login(request, **defaults)
     return LoginView.as_view(**defaults)(request)
 
 
