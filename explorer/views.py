@@ -124,15 +124,16 @@ def _export(request, query, download=True):
                 output_path = os.path.join(settings.WORKSPACE_PATH, SmSession.objects.get().scenario_filename)
             output_path = os.path.join(output_path, "SQL Output Files")
             os.makedirs(output_path, exist_ok=True)
+            output_file_name = os.path.join(output_path, exporter.get_filename())
             if isinstance(output, str):
-                with open(os.path.join(output_path, exporter.get_filename()), "w") as output_file:
+                with open(output_file_name, "w") as output_file:
                     output_file.writelines(output)
             elif isinstance(output, bytes):
-                with open(os.path.join(output_path, exporter.get_filename()), "wb") as output_file:
+                with open(output_file_name, "wb") as output_file:
                     output_file.write(output)
             else:
                 raise ValueError("Unknown output type!")
-            response = HttpResponse("File saved to your Workspace.")
+            response = render(request, 'explorer/save_to_workspace.html', {'file_location': output_file_name})
         except Exception as e:
             msg = "Error saving file: %s" % e
             response = HttpResponse(msg, status=500)
