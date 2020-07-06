@@ -1,3 +1,4 @@
+import os
 import re
 import six
 from collections import Counter
@@ -20,6 +21,7 @@ from django.views.generic.base import View
 from django.views.generic.edit import CreateView, DeleteView
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.core.exceptions import ImproperlyConfigured
+from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.views import LoginView
 
@@ -43,6 +45,11 @@ from explorer.utils import (
 
 from explorer.schema import schema_info
 from explorer import permissions
+
+try:
+    from ADSMSettings.models import SmSession
+except:
+    SmSession = None
 
 
 class ExplorerContextMixin(object):
@@ -104,11 +111,33 @@ def _export(request, query, download=True):
     except DatabaseError as e:
         msg = "Error executing query %s: %s" % (query.title, e)
         return HttpResponse(msg, status=500)
-    response = HttpResponse(output, content_type=exporter.content_type)
-    if download:
-        response['Content-Disposition'] = 'attachment; filename="%s"' % (
-            exporter.get_filename()
-        )
+    if hasattr(settings, 'WORKSPACE_PATH'):
+        try:
+            output_path = settings.WORKSPACE_PATH
+            if getattr(settings, 'DB_BASE_DIR', False):
+                output_path = settings.DB_BASE_DIR
+            if SmSession is not None:
+                output_path = os.path.join(settings.WORKSPACE_PATH, SmSession.objects.get().scenario_filename)
+            output_path = os.path.join(output_path, "SQL Output Files")
+            os.makedirs(output_path, exist_ok=True)
+            if isinstance(output, str):
+                with open(os.path.join(output_path, exporter.get_filename()), "w") as output_file:
+                    output_file.writelines(output)
+            elif isinstance(output, bytes):
+                with open(os.path.join(output_path, exporter.get_filename()), "wb") as output_file:
+                    output_file.write(output)
+            else:
+                raise ValueError("Unknown output type!")
+            response = HttpResponse("File saved to your Workspace.")
+        except Exception as e:
+            msg = "Error saving file: %s" % e
+            response = HttpResponse(msg, status=500)
+    else:
+        response = HttpResponse(output, content_type=exporter.content_type)
+        if download:
+            response['Content-Disposition'] = 'attachment; filename="%s"' % (
+                exporter.get_filename()
+            )
     return response
 
 
