@@ -12,6 +12,9 @@ install:
 
 script:  python manage.py test
 env:
+  - DJANGO="Django==1.8.*"
+  - DJANGO="Django==1.9.*"
+  - DJANGO="Django==1.10.*"
   - DJANGO="Django==1.11.*"
   - DJANGO="Django==2.0.*"
   - DJANGO="Django==2.1.*"

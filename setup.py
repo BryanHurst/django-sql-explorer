@@ -28,6 +28,8 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Topic :: Utilities',
+        'Framework :: Django :: 1.8',
+        'Framework :: Django :: 1.9',
         'Framework :: Django :: 1.10',
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
@@ -41,7 +43,7 @@ setup(
         'Programming Language :: Python :: 3.8',
     ],
     install_requires=[
-        'Django>=2.2,<=3.0.5',
+        'Django>=1.8.0,<=3.0.5',
         'sqlparse>=0.1.18',
         'unicodecsv>=0.14.1',
         'six>=1.10.0',
